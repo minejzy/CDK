@@ -19,7 +19,6 @@ package cli
 import (
 	"fmt"
 
-	"github.com/cdk-team/CDK/conf"
 	"github.com/cdk-team/CDK/pkg/evaluate"
 	"github.com/cdk-team/CDK/pkg/plugin"
 	"github.com/cdk-team/CDK/pkg/tool/dockerd_api"
@@ -42,7 +41,7 @@ func PassInnerArgs() {
 	os.Args = os.Args[1:]
 }
 
-func ParseCDKMain() {
+func ParseCDKMain() bool {
 
 	if len(os.Args) == 1 {
 		docopt.PrintHelpAndExit(nil, BannerContainer)
@@ -53,7 +52,7 @@ func ParseCDKMain() {
 		// https://github.com/jiguangin/netcat
 		PassInnerArgs()
 		netcat.RunVendorNetcat()
-		return
+		return true
 	}
 
 	// docopt argparse start
@@ -61,7 +60,7 @@ func ParseCDKMain() {
 
 	if Args["auto-escape"].(bool) {
 		plugin.RunSingleTask("auto-escape")
-		return
+		return true
 	}
 
 	// support for cdk eva(Evangelion) and cdk evaluate
@@ -72,51 +71,13 @@ func ParseCDKMain() {
 	// fix #37 https://github.com/cdk-team/CDK/issues/37
 	if ok.(bool) || fok.(bool) {
 
-		fmt.Printf("\n[Information Gathering - System Info]\n")
-		evaluate.BasicSysInfo()
-
-		fmt.Printf("\n[Information Gathering - Services]\n")
-		evaluate.SearchSensitiveEnv()
-		evaluate.SearchSensitiveService()
-
-		fmt.Printf("\n[Information Gathering - Commands and Capabilities]\n")
-		evaluate.SearchAvailableCommands()
-		evaluate.GetProcCapabilities()
-
-		fmt.Printf("\n[Information Gathering - Mounts]\n")
-		evaluate.MountEscape()
-
-		fmt.Printf("\n[Information Gathering - Net Namespace]\n")
-		evaluate.CheckNetNamespace()
-
-		fmt.Printf("\n[Information Gathering - Sysctl Variables]\n")
-		evaluate.CheckRouteLocalNetworkValue()
-
-		fmt.Printf("\n[Discovery - K8s API Server]\n")
-		evaluate.CheckK8sAnonymousLogin()
-
-		fmt.Printf("\n[Discovery - K8s Service Account]\n")
-		evaluate.CheckPrivilegedK8sServiceAccount(conf.K8sSATokenDefaultPath)
-
-		fmt.Printf("\n[Discovery - Cloud Provider Metadata API]\n")
-		evaluate.CheckCloudMetadataAPI()
-
-		fmt.Printf("\n[Information Gathering - DNS-Based Service Discovery]\n")
-		evaluate.DNSBasedServiceDiscovery()
+		fmt.Printf(BannerHeader)
+		evaluate.CallBasics()
 
 		if Args["--full"].(bool) {
-
-			fmt.Printf("\n[Information Gathering - Sensitive Files]\n")
-			evaluate.SearchLocalFilePath()
-
-			fmt.Printf("\n[Information Gathering - ASLR]\n")
-			evaluate.ASLR()
-
-			fmt.Printf("\n[Information Gathering - Cgroups]\n")
-			evaluate.DumpCgroup()
-
+			evaluate.CallAddedFunc()
 		}
-		return
+		return true
 	}
 
 	if Args["run"].(bool) {
@@ -128,10 +89,10 @@ func ParseCDKMain() {
 		if plugin.Exploits[name] == nil {
 			fmt.Printf("\nInvalid script name: %s , available scripts:\n", name)
 			plugin.ListAllExploit()
-			return
+			return true
 		}
 		plugin.RunSingleExploit(name)
-		return
+		return true
 	}
 
 	if Args["<tool>"] != nil {
@@ -174,4 +135,6 @@ func ParseCDKMain() {
 			docopt.PrintHelpAndExit(nil, BannerContainer)
 		}
 	}
+
+	return false
 }

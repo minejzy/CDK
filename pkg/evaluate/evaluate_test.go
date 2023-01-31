@@ -1,4 +1,3 @@
-
 /*
 Copyright 2022 The Authors of https://github.com/CDK-TEAM/CDK .
 
@@ -20,9 +19,21 @@ package evaluate
 import (
 	"fmt"
 	"testing"
+
+	"github.com/cdk-team/CDK/pkg/util"
 )
 
 func TestDumpCgroup(t *testing.T) {
 	fmt.Printf("\n[Information Gathering - Cgroups]\n")
 	DumpCgroup()
+}
+
+func TestFindSidFiles(t *testing.T) {
+	fmt.Printf("\n[Information Gathering - SIDs]\n")
+	FindSidFiles()
+}
+
+func TestKernelExploitSuggester(t *testing.T) {
+	util.PrintH2("Exploit Pre - Kernel Exploits")
+	kernelExploitSuggester()
 }
